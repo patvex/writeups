@@ -5,34 +5,44 @@ import time
 # КОНФИГУРАЦИЯ
 HOST = '0.0.0.0'
 PORT = 8080
-MAX_THREADS = 10  # Специально занижаем лимит, чтобы сервер "лег" быстро
+MAX_THREADS = 100  # Специально занижаем лимит, чтобы сервер "лег" быстро
 thread_semaphore = threading.Semaphore(MAX_THREADS)
 
 def handle_client(client_socket, addr):
+    start_time = time.time()
     print(f"[+] Новое соединение от {addr[0]}:{addr[1]}. Активных потоков: {threading.active_count() - 1}/{MAX_THREADS}")
     
     try:
-        # Устанавливаем таймаут, но достаточно большой, чтобы R.U.D.Y и Slowloris работали
-        client_socket.settimeout(60) 
+        # 1. Устанавливаем общий таймаут на чтение (защита от совсем "мёртвых" соединений)
+        client_socket.settimeout(10) 
         
         request_data = b""
         
-        # Чтение заголовков (уязвимо для Slowloris)
         while True:
-            chunk = client_socket.recv(1024)
-            if not chunk:
+            # 2. Проверяем, не слишком ли долго клиент шлет заголовки
+            # Если прошло больше 15 секунд, а заголовков всё нет — кикаем.
+            if time.time() - start_time > 15:
+                print(f"[-] Slow client detected (Slowloris protection) {addr}")
                 break
-            request_data += chunk
-            
-            # Простая проверка конца заголовков
-            if b"\r\n\r\n" in request_data:
-                break
-            
-            # Если данные приходят очень медленно (R.U.D.Y / Slowloris),
-            # этот поток будет висеть здесь и занимать слот в семафоре.
 
-        # Имитация обработки (для проверки Slow Read)
-        response_body = "<html><body><h1>Vulnerable Server is Working</h1><p>Data...</p></body></html>" * 100
+            try:
+                chunk = client_socket.recv(1024)
+                if not chunk:
+                    break
+                request_data += chunk
+                
+                if b"\r\n\r\n" in request_data:
+                    break
+            except socket.timeout:
+                print(f"[-] Socket timeout while receiving headers {addr}")
+                break
+
+        # Если мы вышли из цикла без заголовков — закрываем
+        if b"\r\n\r\n" not in request_data:
+            return
+
+        # 3. Эмуляция ответа (как у тебя и была)
+        response_body = "<html><body><h1>Vibe Server: Safe & Fast</h1></body></html>"
         response_headers = (
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/html\r\n"
@@ -40,22 +50,16 @@ def handle_client(client_socket, addr):
             "Connection: close\r\n\r\n"
         )
         
-        # Отправка данных
         client_socket.sendall(response_headers.encode('utf-8'))
-        
-        # Отправка тела частями (уязвимо для Slow Read, если клиент читает медленно, буфер заполнится и send заблокируется)
-        for i in range(0, len(response_body), 1024):
-            client_socket.send(response_body[i:i+1024].encode('utf-8'))
-            # time.sleep(0.01) # Можно раскомментировать для имитации нагрузки
+        client_socket.sendall(response_body.encode('utf-8'))
 
-    except socket.timeout:
-        print(f"[-] Таймаут соединения {addr}")
     except Exception as e:
         print(f"[-] Ошибка с {addr}: {e}")
     finally:
         client_socket.close()
-        thread_semaphore.release() # Освобождаем слот
-        print(f"[-] Соединение закрыто {addr}. Слот освобожден.")
+        thread_semaphore.release()
+        duration = time.time() - start_time
+        print(f"[-] Соединение закрыто {addr}. Слот освобожден. (Длительность: {duration:.2f}s)")
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
