@@ -1,17 +1,17 @@
-# 🛡️ My Cybersecurity Journey
+#  My Cybersecurity Journey
 
 Welcome to my personal repository! Here, I document my roadmap, lab exercises, and research in the field of Cybersecurity and Network Engineering.
 
 Everything here is a reflection of my learning process—from basic networking to advanced penetration testing techniques.(or no🥲)
 
-## 📂 Repository Contents
+##  Repository Contents
 
 * **CTF Write-ups:** Solutions and notes from **TryHackMe**, **HackTheBox**, and other platforms.
 * **Network Labs:** Configuration files and reports from my **Cisco** studies (Packet Tracer, real gear).
 * **Personal Research:** Custom Python scripts, DoS attack analysis, and system hardening logs.
 * **Hardware Hacking:** Experiments with **M5StickC Plus 2** and IoT devices.
 
-## 💻 My Setup / Battle Station
+##  My Setup / Battle Station
 
 I run my labs on a custom-built high-performance rig running **Arch Linux**.
 
@@ -26,7 +26,7 @@ I run my labs on a custom-built high-performance rig running **Arch Linux**.
 
 > **Future Plans:** Building a dedicated Homelab server on an Intel Core i5 4570 / 16GB DDR3.
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 **EDUCATIONAL PURPOSES ONLY.**
 
