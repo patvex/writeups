@@ -6,7 +6,7 @@ Im reading book about kali, and now im on network testing theme. When im was rea
 - Kali Linux as attacker
 - Techniques tested: R-U.D.Y, Slow Read, slowloris
 
-# Attack scenario
+# Lab started
 ### slow loris
 **Slow loris its DoS attack when you dont spam alot packages, its when u spam "dont closed" packages to a server, and then send little bits in order to server doesnt stop** 
 
@@ -22,7 +22,26 @@ where -H its slow loris attack,
 - r 100 equal 100 packages for second
 
 ## result
-**Server downed after 5-10 second**
-![infoAboutAttack](slow-loris.png)
+**Server downed successfully**
+<img src="slow-loris.png" width="400" alt="infoAboutAttack">
 
-_to be continued_
+### R.U.D.Y. (R-U-Dead-Yet?)
+When I first tried the command in Kali, it didn't work as expected. I realized the issue was in the server code, which wasn't processing the request body correctly. 
+
+After fixing the server, I refined the attack command to be more effective by explicitly setting the POST method and a long content length to keep the connections occupied:
+
+```bash
+slowhttptest -g -o newrudy -B -u [http://192.168.122.1:8080](http://192.168.122.1:8080) -c 50 -r 10 -i 5 -t POST - 500
+```
+
+Key changes:
+
+ -B: Enables R.U.D.Y. mode (Slow Body attack).
+
+ -t POST: Uses the POST method (required for this attack).
+
+ -s 5000: Sets the Content-Length header to 5000 bytes, making the server wait for a lot of data.
+
+## result
+**Server downed successfully**
+<img src="rudy.png" width="400" alt="infoAboutAttack">
